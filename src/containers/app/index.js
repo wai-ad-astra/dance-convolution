@@ -1,8 +1,13 @@
 import React, { Component } from "react";
-import { Route, Link } from "react-router-dom";
+// newer version of react-router:
+// todo: app idea: track deprecations => emails developper to update deprecated, or highlight it
+// todo: camera how to display to both zoom & webapp
+import { Route, Link, Switch} from "react-router-dom";
 import Home from "../home";
 import About from "../about";
 import Train from "../train";
+
+import Button from '@material-ui/core/Button';
 
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
 import * as tf from '@tensorflow/tfjs';
@@ -20,9 +25,10 @@ class App extends Component {
     captures: [],
   };
 
+  // (for functional: async inside of hook)
   async componentDidMount() {
     // axios.get(SERVER_URL + 'handshake').then(res => console.log(res, 'handshake'))
-    const net = await posenet.load({
+    const myPosenet = await posenet.load({
       architecture: "ResNet50",
       outputStride: 32,
       inputResolution: { width: 257, height: 200 },
@@ -30,13 +36,22 @@ class App extends Component {
     })
 
     // todo: tutorial outdated! https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5
-    //// const pose = await net.estimateSinglePose(imageElement, scaleFactor, flipHorizontal, outputStride);
-    // const pose = await net.estimateSinglePose(this.state.imageElement);
+    //// const pose = await myPosenet.estimateSinglePose(imageElement, scaleFactor, flipHorizontal, outputStride);
+    // const pose = await myPosenet.estimateSinglePose(this.state.imageElement);
     // console.log(pose)
 
     // is async
+    // todo: generally want to interact with virtual DOM: set a ref:
+    //  attach to virtual dom node, helps optimization
+    // todo: check musk's AR vid
+    // todo: kids will prob be creative w gestures
+    // todo: edge vs server ML training unviersal model vs personalized
+    // todo: storage limits for local storage (if too big maybe server)
+    // todo: react-router only for logic, for styling navbar: eg material UI (increases bundle size), reactbootstrap
+    // todo: checkout snowpack bundler (ESM vs webpack), has dynamic update of modules (pckage.json)
+
     this.setState({
-      net,
+      net: myPosenet,
       imageElement: document.getElementById('video'),
       canvas: document.getElementById('canvas'),
       video: document.getElementById('video'),
@@ -81,16 +96,33 @@ class App extends Component {
         </header>
 
         <main>
-          <Route exact path="/" component={Home}/>
-          <Route exact path="/about-us" component={About}/>
-          <Route exact path="/train" component={Train}/>
+          {/*// exact: exact string, vs match prefixed, it alsolooks for first route, so need exact for root if not last
+          put at bootom so ppl know where to look
+          :param in root path, "use params" destructure into vars */}
+          <Switch>
+            <Route path="/about">
+              <About />
+            </Route>
+            <Route path="/train">
+              <Train />
+            </Route>
+            <Route path="/">
+              <Home />
+            </Route>
+          </Switch>
+          {/*<Route exact path="/" component={Home}/>*/}
+          {/*<Route exact path="/about-us" component={About}/>*/}
+          {/*<Route exact path="/train" component={Train}/>*/}
           <p>helloooooo</p>
           {/*<div id="video" style={{height: 500, width: 500, border: '5px dotted'}}></div>*/}
           <div>
             <video id="video" width="500" height="500" autoPlay/>
           </div>
           <div>
-            <button id="snap" onClick={this.captureHandler}>Snap Photo</button>
+            {/*// note: JSX comments are like this!*/}
+            {/*<button id="snap" onClick={this.captureHandler}>Snap Photo</button>*/}
+            <Button id="snap" variant="contained" color="primary"
+                    onClick={this.captureHandler}>Snap Photo</Button>
           </div>
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>

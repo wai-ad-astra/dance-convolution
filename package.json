@@ -16,6 +16,7 @@
     "react-scripts": "2.1.8"
   },
   "dependencies": {
+    "@material-ui/core": "^4.11.0",
     "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "^2.7.0",
     "connected-react-router": "4.5.0",
