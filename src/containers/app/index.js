@@ -2,17 +2,17 @@ import React, { Component } from "react";
 // newer version of react-router:
 // todo: app idea: track deprecations => emails developper to update deprecated, or highlight it
 // todo: camera how to display to both zoom & webapp
-import { Route, Link, Switch} from "react-router-dom";
+import { Route, Link, Switch } from "react-router-dom";
 import Home from "../home";
 import About from "../about";
 import Train from "../train";
 
-import Button from '@material-ui/core/Button';
+import Button from "@material-ui/core/Button";
 
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
-import * as tf from '@tensorflow/tfjs';
-import * as posenet from '@tensorflow-models/posenet';
-import estimateSinglePose from '@tensorflow-models/posenet';
+import * as tf from "@tensorflow/tfjs";
+import * as posenet from "@tensorflow-models/posenet";
+import estimateSinglePose from "@tensorflow-models/posenet";
 
 class App extends Component {
   state = {
@@ -24,8 +24,8 @@ class App extends Component {
     video: null,
     canvas: null,
     captures: [],
-    data:[],
-    
+    // data:[],
+    coordinates: []
   };
 
   // (for functional: async inside of hook)
@@ -36,7 +36,7 @@ class App extends Component {
       outputStride: 32,
       inputResolution: { width: 257, height: 200 },
       quantBytes: 2
-    })
+    });
 
     // todo: tutorial outdated! https://medium.com/tensorflow/real-time-human-pose-estimation-in-the-browser-with-tensorflow-js-7dd0bc881cd5
     //// const pose = await myPosenet.estimateSinglePose(imageElement, scaleFactor, flipHorizontal, outputStride);
@@ -55,57 +55,68 @@ class App extends Component {
 
     this.setState({
       net: myPosenet,
-      imageElement: document.getElementById('video'),
-      canvas: document.getElementById('canvas'),
-      video: document.getElementById('video'),
+      imageElement: document.getElementById("video"),
+      canvas: document.getElementById("canvas"),
+      video: document.getElementById("video")
     }, () => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        navigator.mediaDevices.getUserMedia({video: true}).then(stream => {
-          this.state.video.srcObject=stream;
+        navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+          this.state.video.srcObject = stream;
           this.state.video.play();
           // deprecated
           // this.video.src = window.URL.createObjectURL(stream);
         });
       }
     });
+    this.startCameraMode()
   }
+  
+  startCameraMode = () => {
+    setInterval(() => this.captureHandler(), 1000)
+  }
+  // onBurst = () => {
+  //   let count = 0
+  //   const interval = setInterval(() => {
+  //     this.captureHandler()
+  //     count++
+  //     if (count === this.props.settings.burst){
+  //       clearInterval(this.state.interval)
+  //       this.setState({interval: null})
+  //     }
+  //   }, this.props.settings.burstRate * 1000)
+  //   this.setState({interval})
+  // }
 
   captureHandler = () => {
+    console.log("CaptureHandler");
+    // setInterval: capture a pic at x FPS
 
-    var date1 = new Date();
-    var date2 = new Date();
-    var diff = date2 - date1; 
+    const g = [];
+    this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
-    //we'll capture images for the two seconds
-    //collect the data together
+    let b = this.startVideo(this.state.canvas);
 
-    g = []
-    while (diff < 2000) {
-      this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
-
-      let b = this.startVideo(this.state.canvas);
-
-      // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
-      this.setState({
-        captures: this.state.captures.concat(this.state.canvas.toDataURL("image/png")),
-      });
-
-      g.concat(b)
-
-    }
-
+    // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
     this.setState({
-      data: this.state.data.concat(g), 
+      captures: this.state.captures.concat(this.state.canvas.toDataURL("image/png"))
     });
 
-    diff = 0  
+    g.concat(b);
 
+
+    this.setState({
+      data: this.state.data.concat(g)
+    });
+  };
+
+  test = () => {
+    console.log('testing!');
   }
 
   async startVideo(imageElement) {
-    
+    console.log("startVideo");
     const net = await posenet.load({
-      architecture: 'ResNet50',
+      architecture: "ResNet50",
       outputStride: 32,
       inputResolution: { width: 257, height: 200 },
       quantBytes: 2
@@ -116,25 +127,27 @@ class App extends Component {
     });
 
     console.log(pose);
-    let a = pose;
-    let coordinates = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
-  
-    for (let z = 0; z < 17; z++) {
+    // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
+    const coordinates = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
 
-      let b = [a.keypoints[z].position["x"],a.keypoints[z].position["y"]];
-      coordinates[z].push(b);
-    }
-  
-    console.log(coordinates)
-  
+    // todo: setInterval (take pic from cam every x ms) => extract pose data => save to
+    // for (const z = 0; z < 17; z++) {
+    //   let b = [pose.keypoints[z].position["x"],pose.keypoints[z].position["y"]];
+    //   coordinates[z].push(b);
+    // }
+    pose.keypoints.map((keypoint, i) =>
+      coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]));
+
+    console.log(coordinates);
+
     return coordinates;
-}
+  }
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
       <li key={i}><img src={capture} height="50" alt={`camera frame #${i}`}/></li>
     );
-    
+
 
     return (
       <div>
@@ -150,13 +163,13 @@ class App extends Component {
           :param in root path, "use params" destructure into vars */}
           <Switch>
             <Route path="/about">
-              <About />
+              <About/>
             </Route>
             <Route path="/train">
-              <Train />
+              <Train/>
             </Route>
             <Route path="/">
-              <Home />
+              <Home/>
             </Route>
           </Switch>
           {/*<Route exact path="/" component={Home}/>*/}
@@ -172,6 +185,8 @@ class App extends Component {
             {/*<button id="snap" onClick={this.captureHandler}>Snap Photo</button>*/}
             <Button id="snap" variant="contained" color="primary"
                     onClick={this.captureHandler}>Snap Photo</Button>
+            <Button id="dummy" variant="contained" color="secondary"
+                    onClick={this.test}>Test</Button>
           </div>
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>
