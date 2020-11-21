@@ -3,11 +3,24 @@ import { Route, Link } from "react-router-dom";
 import Home from "../home";
 import About from "../about";
 import Train from "../train";
+<<<<<<< Updated upstream
 
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
 import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
 import estimateSinglePose from '@tensorflow-models/posenet';
+=======
+import Button from "@material-ui/core/Button";
+
+
+// specify latest version, otherwise posetnet may use older, leading to: No Backends found error
+import * as tf from "@tensorflow/tfjs";
+import * as posenet from "@tensorflow-models/posenet";
+import estimateSinglePose from "@tensorflow-models/posenet";
+import { metrics } from "@tensorflow/tfjs";
+
+const N_POSE_COMPONENTS = 17
+>>>>>>> Stashed changes
 
 class App extends Component {
   state = {
@@ -19,8 +32,13 @@ class App extends Component {
     video: null,
     canvas: null,
     captures: [],
+<<<<<<< Updated upstream
     data:[],
     
+=======
+    // data:[],
+    coordinates: [],
+>>>>>>> Stashed changes
   };
 
   async componentDidMount() {
@@ -54,6 +72,8 @@ class App extends Component {
       }
     });
   }
+  //we want to classify the coordinate data after the 2000 ms
+  //this will require a model to evaluate the this.state.coordinates after 2000 ms
 
   captureHandler = () => {
 
@@ -61,6 +81,7 @@ class App extends Component {
     var date2 = new Date();
     var diff = date2 - date1; 
 
+<<<<<<< Updated upstream
     //we'll capture images for the two seconds
     //collect the data together
 
@@ -78,14 +99,62 @@ class App extends Component {
       g.concat(b)
 
     }
+=======
+    const pic = this.state.canvas.toDataURL("image/png")
+    // let newCoordinates = this.addCoordinates(this.state.canvas);
+    // console.log(pic);
+    const newCoordinates = this.addCoordinates();
+   
+    console.log(this.state.coordinates);
+    // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
+>>>>>>> Stashed changes
 
     this.setState({
       data: this.state.data.concat(g), 
     });
+<<<<<<< Updated upstream
 
     diff = 0  
 
   }
+=======
+
+    
+  };
+
+  processData = (input) => {
+    var coordinateArr = input;
+
+    var x = [];
+    var y = [];
+
+    for (var i = 0; i < 17; i++) {
+
+      x.push(coordinateArr[i][0]);
+      y.push(coordinateArr[i][1]);
+    }
+
+    console.log(x);
+    console.log(y);
+  }
+
+  async addCoordinates() {
+    console.log("addCoordinates");
+    console.log(this.state.canvas);
+    console.log(this.state.myPosenet);
+    // todo: if fliphorizontal true doesn't work set it to false
+    const pose = await this.state.myPosenet.estimateSinglePose(
+      // this.state.captures[this.state.captures.length-1],
+      this.state.canvas,
+      { flipHorizontal: true
+    });
+
+    console.log(pose);
+    
+    // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
+    // [[], []... []]
+    const coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])]
+>>>>>>> Stashed changes
 
   async startVideo(imageElement) {
     
@@ -96,9 +165,12 @@ class App extends Component {
       quantBytes: 2
     });
 
+<<<<<<< Updated upstream
     const pose = await net.estimateSinglePose(imageElement, {
       flipHorizontal: true
     });
+=======
+>>>>>>> Stashed changes
 
     console.log(pose);
     let a = pose;
@@ -134,6 +206,7 @@ class App extends Component {
           <Route exact path="/about-us" component={About}/>
           <Route exact path="/train" component={Train}/>
           <p>helloooooo</p>
+
           {/*<div id="video" style={{height: 500, width: 500, border: '5px dotted'}}></div>*/}
           <div>
             <video id="video" width="500" height="500" autoPlay/>
