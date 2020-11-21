@@ -56,7 +56,7 @@ class App extends Component {
     // todo: checkout snowpack bundler (ESM vs webpack), has dynamic update of modules (pckage.json)
 
     this.setState({
-      net: myPosenet,
+      myPosenet: myPosenet,
       imageElement: document.getElementById("video"),
       canvas: document.getElementById("canvas"),
       video: document.getElementById("video")
@@ -99,6 +99,7 @@ class App extends Component {
   async addCoordinates() {
     console.log("addCoordinates");
     console.log(this.state.canvas);
+    console.log(this.state.myPosenet);
     // todo: if fliphorizontal true doesn't work set it to false
     const pose = await this.state.myPosenet.estimateSinglePose(
       // this.state.captures[this.state.captures.length-1],
@@ -114,7 +115,7 @@ class App extends Component {
     pose.keypoints.map((keypoint, i) =>
       coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]));
 
-    console.log(coordinates);
+    console.log(JSON.stringify(coordinates));
 
     return coordinates;
   }
