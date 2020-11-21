@@ -25,6 +25,10 @@ class App extends Component {
     outputStride: 16,
 
     myTimer: null,
+    trainDelay: 500,
+    trainInterval: 50,
+    trainDuration: 2000,
+    audioElem: null,
 
     video: null,
     canvas: null,
@@ -61,7 +65,8 @@ class App extends Component {
       myPosenet: myPosenet,
       imageElement: document.getElementById("video"),
       canvas: document.getElementById("canvas"),
-      video: document.getElementById("video")
+      video: document.getElementById("video"),
+      audioElem: document.getElementsByClassName("audio-element")[0],
     }, () => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
@@ -101,11 +106,22 @@ class App extends Component {
   };
 
   pauseHandler = () => {
+    alert(this.state.coordinates.length)
     clearInterval(this.state.myTimer);
+    this.setState({
+      coordinates: [],
+      captures: [],
+    });
   };
 
   trainHandler = () => {
-
+    setTimeout(() => {
+      this.state.audioElem.play()
+      this.setState({
+        myTimer: setInterval(() => this.captureHandler(), this.state.trainInterval)
+      });
+      setTimeout(this.pauseHandler, this.state.trainDuration)
+    }, this.state.trainDelay);
   };
 
   async addCoordinates() {
@@ -181,6 +197,9 @@ class App extends Component {
             <Button id="train" variant="contained" color="primary"
                     onClick={this.trainHandler}>Train for 2 secs</Button>
           </div>
+          <audio className="audio-element">
+            <source src="https://assets.coderrocketfuel.com/pomodoro-times-up.mp3"></source>
+          </audio>
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>
         </main>
