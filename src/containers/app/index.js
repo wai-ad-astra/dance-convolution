@@ -7,6 +7,7 @@ import Train from "../train";
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
 import * as tf from '@tensorflow/tfjs';
 import * as posenet from '@tensorflow-models/posenet';
+import estimateSinglePose from '@tensorflow-models/posenet';
 
 class App extends Component {
   state = {
@@ -18,6 +19,8 @@ class App extends Component {
     video: null,
     canvas: null,
     captures: [],
+    data:[],
+    
   };
 
   async componentDidMount() {
@@ -53,24 +56,70 @@ class App extends Component {
   }
 
   captureHandler = () => {
-    this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
-    // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
+    var date1 = new Date();
+    var date2 = new Date();
+    var diff = date2 - date1; 
+
+    //we'll capture images for the two seconds
+    //collect the data together
+
+    g = []
+    while (diff < 2000) {
+      this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
+
+      let b = this.startVideo(this.state.canvas);
+
+      // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
+      this.setState({
+        captures: this.state.captures.concat(this.state.canvas.toDataURL("image/png")),
+      });
+
+      g.concat(b)
+
+    }
+
     this.setState({
-      captures: this.state.captures.concat(this.state.canvas.toDataURL("image/png"))
+      data: this.state.data.concat(g), 
     });
+
+    diff = 0  
 
   }
 
-  // async startVideo() {
-  // // load the posenet model
-  //   const
-  // }
+  async startVideo(imageElement) {
+    
+    const net = await posenet.load({
+      architecture: 'ResNet50',
+      outputStride: 32,
+      inputResolution: { width: 257, height: 200 },
+      quantBytes: 2
+    });
+
+    const pose = await net.estimateSinglePose(imageElement, {
+      flipHorizontal: true
+    });
+
+    console.log(pose);
+    let a = pose;
+    let coordinates = [[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[],[]];
+  
+    for (let z = 0; z < 17; z++) {
+
+      let b = [a.keypoints[z].position["x"],a.keypoints[z].position["y"]];
+      coordinates[z].push(b);
+    }
+  
+    console.log(coordinates)
+  
+    return coordinates;
+}
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
       <li key={i}><img src={capture} height="50" alt={`camera frame #${i}`}/></li>
     );
+    
 
     return (
       <div>
