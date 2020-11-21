@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { Route, Link } from "react-router-dom";
 import Home from "../home";
 import About from "../about";
+import Train from "../train";
 
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
 import * as tf from '@tensorflow/tfjs';
@@ -76,11 +77,13 @@ class App extends Component {
         <header>
           <Link to="/">Home</Link>
           <Link to="/about-us">About</Link>
+          <Link to="/train">Train</Link>
         </header>
 
         <main>
           <Route exact path="/" component={Home}/>
           <Route exact path="/about-us" component={About}/>
+          <Route exact path="/train" component={Train}/>
           <p>helloooooo</p>
           {/*<div id="video" style={{height: 500, width: 500, border: '5px dotted'}}></div>*/}
           <div>
