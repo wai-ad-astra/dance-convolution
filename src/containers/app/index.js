@@ -14,9 +14,11 @@ import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
 import estimateSinglePose from "@tensorflow-models/posenet";
 
+const N_POSE_COMPONENTS = 17
+
 class App extends Component {
   state = {
-    net: null,
+    myPosenet: null,
     imageElement: null,
     imageScaleFactor: .5,
     flipHorizontal: false,
@@ -68,73 +70,47 @@ class App extends Component {
         });
       }
     });
-    this.startCameraMode()
+
   }
-  
+
+  // take pic from cam every x ms => extract pose data => save to
   startCameraMode = () => {
-    setInterval(() => this.captureHandler(), 1000)
+    setInterval(() => this.captureHandler(), 2000)
   }
-  // onBurst = () => {
-  //   let count = 0
-  //   const interval = setInterval(() => {
-  //     this.captureHandler()
-  //     count++
-  //     if (count === this.props.settings.burst){
-  //       clearInterval(this.state.interval)
-  //       this.setState({interval: null})
-  //     }
-  //   }, this.props.settings.burstRate * 1000)
-  //   this.setState({interval})
-  // }
 
   captureHandler = () => {
     console.log("CaptureHandler");
     // setInterval: capture a pic at x FPS
 
-    const g = [];
     this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
-    let b = this.startVideo(this.state.canvas);
+    const pic = this.state.canvas.toDataURL("image/png")
+    // let newCoordinates = this.addCoordinates(this.state.canvas);
+    // console.log(pic);
+    const newCoordinates = this.addCoordinates();
 
     // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
     this.setState({
-      captures: this.state.captures.concat(this.state.canvas.toDataURL("image/png"))
-    });
-
-    g.concat(b);
-
-
-    this.setState({
-      data: this.state.data.concat(g)
+      captures: this.state.captures.concat(pic),
+      coordinates: this.state.coordinates.concat(newCoordinates)
     });
   };
 
-  test = () => {
-    console.log('testing!');
-  }
-
-  async startVideo(imageElement) {
-    console.log("startVideo");
-    const net = await posenet.load({
-      architecture: "ResNet50",
-      outputStride: 32,
-      inputResolution: { width: 257, height: 200 },
-      quantBytes: 2
-    });
-
-    const pose = await net.estimateSinglePose(imageElement, {
-      flipHorizontal: true
+  async addCoordinates() {
+    console.log("addCoordinates");
+    console.log(this.state.canvas);
+    // todo: if fliphorizontal true doesn't work set it to false
+    const pose = await this.state.myPosenet.estimateSinglePose(
+      // this.state.captures[this.state.captures.length-1],
+      this.state.canvas,
+      { flipHorizontal: true
     });
 
     console.log(pose);
     // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
-    const coordinates = [[], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []];
+    // [[], []... []]
+    const coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])]
 
-    // todo: setInterval (take pic from cam every x ms) => extract pose data => save to
-    // for (const z = 0; z < 17; z++) {
-    //   let b = [pose.keypoints[z].position["x"],pose.keypoints[z].position["y"]];
-    //   coordinates[z].push(b);
-    // }
     pose.keypoints.map((keypoint, i) =>
       coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]));
 
@@ -186,7 +162,7 @@ class App extends Component {
             <Button id="snap" variant="contained" color="primary"
                     onClick={this.captureHandler}>Snap Photo</Button>
             <Button id="dummy" variant="contained" color="secondary"
-                    onClick={this.test}>Test</Button>
+                    onClick={this.startCameraMode}>Start Taking Photos</Button>
           </div>
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>
