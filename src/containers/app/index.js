@@ -14,7 +14,7 @@ import * as tf from "@tensorflow/tfjs";
 import * as posenet from "@tensorflow-models/posenet";
 import estimateSinglePose from "@tensorflow-models/posenet";
 
-const N_POSE_COMPONENTS = 17
+const N_POSE_COMPONENTS = 17;
 
 class App extends Component {
   state = {
@@ -23,10 +23,12 @@ class App extends Component {
     imageScaleFactor: .5,
     flipHorizontal: false,
     outputStride: 16,
+
+    myTimer: null,
+
     video: null,
     canvas: null,
     captures: [],
-    // data:[],
     coordinates: []
   };
 
@@ -74,9 +76,11 @@ class App extends Component {
   }
 
   // take pic from cam every x ms => extract pose data => save to
-  startCameraMode = () => {
-    setInterval(() => this.captureHandler(), 2000)
-  }
+  startCameraHandler = () => {
+    this.setState({
+      myTimer: setInterval(() => this.captureHandler(), 2000)
+    });
+  };
 
   captureHandler = () => {
     console.log("CaptureHandler");
@@ -84,7 +88,7 @@ class App extends Component {
 
     this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
-    const pic = this.state.canvas.toDataURL("image/png")
+    const pic = this.state.canvas.toDataURL("image/png");
     // let newCoordinates = this.addCoordinates(this.state.canvas);
     // console.log(pic);
     const newCoordinates = this.addCoordinates();
@@ -96,6 +100,14 @@ class App extends Component {
     });
   };
 
+  pauseHandler = () => {
+    clearInterval(this.state.myTimer);
+  };
+
+  trainHandler = () => {
+
+  };
+
   async addCoordinates() {
     console.log("addCoordinates");
     console.log(this.state.canvas);
@@ -104,13 +116,14 @@ class App extends Component {
     const pose = await this.state.myPosenet.estimateSinglePose(
       // this.state.captures[this.state.captures.length-1],
       this.state.canvas,
-      { flipHorizontal: true
-    });
+      {
+        flipHorizontal: true
+      });
 
     console.log(pose);
     // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
     // [[], []... []]
-    const coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])]
+    const coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
 
     pose.keypoints.map((keypoint, i) =>
       coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]));
@@ -119,6 +132,7 @@ class App extends Component {
 
     return coordinates;
   }
+
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
@@ -160,10 +174,12 @@ class App extends Component {
           <div>
             {/*// note: JSX comments are like this!*/}
             {/*<button id="snap" onClick={this.captureHandler}>Snap Photo</button>*/}
-            <Button id="snap" variant="contained" color="primary"
-                    onClick={this.captureHandler}>Snap Photo</Button>
-            <Button id="dummy" variant="contained" color="secondary"
-                    onClick={this.startCameraMode}>Start Taking Photos</Button>
+            <Button id="startCamera" variant="contained" color="primary"
+                    onClick={this.startCameraHandler}>Start Streaming</Button>
+            <Button id="pause" variant="contained" color="secondary"
+                    onClick={this.pauseHandler}>Pause</Button>
+            <Button id="train" variant="contained" color="primary"
+                    onClick={this.trainHandler}>Train for 2 secs</Button>
           </div>
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>
