@@ -33,7 +33,11 @@ class App extends Component {
     video: null,
     canvas: null,
     captures: [],
-    coordinates: []
+    coordinates: [],
+
+  //  IDE
+    SEC_HTTPS: true,
+    SEC_BASE: "<personalized_link>",
   };
 
   // (for functional: async inside of hook)
@@ -61,6 +65,8 @@ class App extends Component {
     // todo: react-router only for logic, for styling navbar: eg material UI (increases bundle size), reactbootstrap
     // todo: checkout snowpack bundler (ESM vs webpack), has dynamic update of modules (pckage.json)
 
+    this.renderIDE(document, "script", "sphere-engine-compilers-jssdk")
+
     this.setState({
       myPosenet: myPosenet,
       imageElement: document.getElementById("video"),
@@ -77,8 +83,22 @@ class App extends Component {
         });
       }
     });
-
   }
+
+  renderIDE = (d, s, id) => {
+      const SEC = window.SEC || (window.SEC = []);
+      let [js, fjs] = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) return;
+      js = d.createElement(s);
+      js.id = id;
+      // js.src = (this.state.SEC_HTTPS ? "https" : "http") + "://" + this.state.SEC_BASE + "/static/sdk/sdk.js";
+      js.src = `${this.state.SEC_HTTPS ? "https" : "http"}://${this.state.SEC_BASE}/static/sdk/sdk.js`;
+      fjs.parentNode.insertBefore(js, fjs);
+  }
+
+
+
+
 
   // take pic from cam every x ms => extract pose data => save to
   startCameraHandler = () => {
@@ -201,6 +221,7 @@ class App extends Component {
             <source src="https://assets.coderrocketfuel.com/pomodoro-times-up.mp3"></source>
           </audio>
           <canvas id="canvas" width="500" height="500"/>
+          <div className="sec-widget" data-widget="638fc89ca98368350a786a6edd1241ac"></div>
           <ul>{captures}</ul>
         </main>
       </div>
