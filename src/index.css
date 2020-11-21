@@ -14,3 +14,12 @@ body {
 button:disabled {
   opacity: 0.5;
 }
+
+#canvas {
+  display: none;
+}
+
+li {
+  display: inline;
+  padding: 5px;
+}
