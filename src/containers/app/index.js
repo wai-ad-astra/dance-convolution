@@ -43,7 +43,7 @@ class App extends Component {
     video: null,
     canvas: null,
     captures: [],
-    coordinates: [],
+    frames: [],
     train_samples: [],
     AUDIO_SRC: "https://assets.coderrocketfuel.com/pomodoro-times-up.mp3",
     audio: null,
@@ -112,27 +112,25 @@ class App extends Component {
     this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
     const pic = this.state.canvas.toDataURL("image/png");
-    // let newCoordinates = this.addCoordinates(this.state.canvas);
-    // console.log(pic);
     const coordinateSequence = this.addCoordinates();
 
     // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
     this.setState({
       captures: this.state.captures.concat(pic),
-      coordinates: this.state.coordinates.concat(coordinateSequence)
+      frames: this.state.frames.concat(coordinateSequence)
     });
   };
 
   pauseHandler = isTraining => {
     // if training, add to train_samples
     // without keeping a copy of coordinates, the async setStates clears coordinates before they can be added to samples
-    // const coordinates_copy = [...this.state.coordinates];  // shallow copy (spread) works because we're reassigning in state, not clearing
-    // alert(JSON.stringify(this.state.coordinates))
-    const coordinates_copy = JSON.parse(JSON.stringify(this.state.coordinates));
+    // const coordinates_copy = [...this.state.frames];  // shallow copy (spread) works because we're reassigning in state, not clearing
+    // alert(JSON.stringify(this.state.frames))
+    const coordinates_copy = JSON.parse(JSON.stringify(this.state.frames));
     // alert(JSON.stringify(coordinates_copy))
     if (isTraining) {
       console.log("istraining" + isTraining);
-      // alert(this.state.coordinates.length);
+      // alert(this.state.frames.length);
       clearInterval(this.state.myTimer);
       // sequences map to gestures
       // data format: (sequence#, frame#, bodypart#)
@@ -143,7 +141,7 @@ class App extends Component {
       console.log("dimensions of samples" + dimensions);
       this.setState({
         train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
-        coordinates: [],
+        frames: [],
         captures: [],
         // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
       }, () => {
@@ -158,7 +156,7 @@ class App extends Component {
       });
     } else {  // clear coordinates
       this.setState({
-        coordinates: [],
+        frames: [],
         captures: []
       });
     }
@@ -228,8 +226,9 @@ class App extends Component {
     //   coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]);
     // });
 
+    // sherlock homes: I think this should be push
     this.setState({
-      coordinates: this.state.coordinates.concat(coordinates)
+      frames: [...this.state.frames, coordinates],
     });
 
     console.log("addcoordinates " + JSON.stringify(coordinates));
