@@ -1,13 +1,19 @@
+/** Libraries  */
 import React, { Component } from "react";
 // newer version of react-router:
 // todo: app idea: track deprecations => emails developper to update deprecated, or highlight it
 // todo: camera how to display to both zoom & webapp
 import { Route, Link, Switch } from "react-router-dom";
+import axios from "axios";
+
+/** Material UI */
+import Button from "@material-ui/core/Button";
+
+/** Components  */
 import Home from "../home";
 import About from "../about";
 import Train from "../train";
 
-import Button from "@material-ui/core/Button";
 
 // specify latest version, otherwise posetnet may use older, leading to: No Backends found error
 import * as tf from "@tensorflow/tfjs";
@@ -18,22 +24,32 @@ const N_POSE_COMPONENTS = 17;
 
 class App extends Component {
   state = {
+    /** model */
     myPosenet: null,
     imageElement: null,
     imageScaleFactor: .5,
     flipHorizontal: false,
     outputStride: 16,
 
+    /** training */
     myTimer: null,
     trainDelay: 500,
     trainInterval: 50,
-    trainDuration: 2000,
+    trainDuration: 5000,
     audioElem: null,
+    BATCH_SIZE_TRAIN: 5,
 
+    /** media */
     video: null,
     canvas: null,
     captures: [],
-    coordinates: []
+    coordinates: [],
+    train_samples: [],
+    AUDIO_SRC: "https://assets.coderrocketfuel.com/pomodoro-times-up.mp3",
+    audio: null,
+
+    /** axios */
+    BASE_URL: null
   };
 
   // (for functional: async inside of hook)
@@ -66,7 +82,9 @@ class App extends Component {
       imageElement: document.getElementById("video"),
       canvas: document.getElementById("canvas"),
       video: document.getElementById("video"),
-      audioElem: document.getElementsByClassName("audio-element")[0],
+      // audioElem: document.getElementsByClassName("audio-element")[0],
+      BASE_URL: process.env.PORT || "http://localhost:5000",
+      audio: new Audio(this.state.AUDIO_SRC)
     }, () => {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
@@ -96,31 +114,65 @@ class App extends Component {
     const pic = this.state.canvas.toDataURL("image/png");
     // let newCoordinates = this.addCoordinates(this.state.canvas);
     // console.log(pic);
-    const newCoordinates = this.addCoordinates();
+    const coordinateSequence = this.addCoordinates();
 
     // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
     this.setState({
       captures: this.state.captures.concat(pic),
-      coordinates: this.state.coordinates.concat(newCoordinates)
+      coordinates: this.state.coordinates.concat(coordinateSequence)
     });
   };
 
-  pauseHandler = () => {
-    alert(this.state.coordinates.length)
-    clearInterval(this.state.myTimer);
-    this.setState({
-      coordinates: [],
-      captures: [],
-    });
+  pauseHandler = isTraining => {
+    // if training, add to train_samples
+    // without keeping a copy of coordinates, the async setStates clears coordinates before they can be added to samples
+    // const coordinates_copy = [...this.state.coordinates];  // shallow copy (spread) works because we're reassigning in state, not clearing
+    // alert(JSON.stringify(this.state.coordinates))
+    const coordinates_copy = JSON.parse(JSON.stringify(this.state.coordinates));
+    // alert(JSON.stringify(coordinates_copy))
+    if (isTraining) {
+      // alert(this.state.coordinates.length);
+      clearInterval(this.state.myTimer);
+      this.setState({
+        train_samples: this.state.train_samples.concat(coordinates_copy),
+        coordinates: [],
+        captures: [],
+        audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
+      }, () => {
+        if (this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN) {
+          this.trainHandler();
+        }
+      });
+    } else {  // clear coordinates
+      this.setState({
+        coordinates: [],
+        captures: []
+      });
+    }
+
   };
 
+  /**
+   * plays a sound to start recording
+   * starts timer that captures frame every trainInterval ms
+   * pause timer after training duration reached
+   */
   trainHandler = () => {
+    alert(`train handler debug: ${JSON.stringify(this.state.train_samples)}`);
     setTimeout(() => {
-      this.state.audioElem.play()
+      // resets position in audio file to start
+      // todo: https://stackoverflow.com/questions/7005472/html-audio-element-how-to-replay
+      // sol1: this.state.audioElem.currentTime=0;
+      // sol2: this.state.audioElem.load();
+      // sol3: this.state.audioElem.setAttribute('src', this.state.AUDIO_SRC);
+      // sol4: this.state.audio.pause()
+      // this.state.audioElem.play();
+      this.state.audio.play();
+
       this.setState({
         myTimer: setInterval(() => this.captureHandler(), this.state.trainInterval)
       });
-      setTimeout(this.pauseHandler, this.state.trainDuration)
+      setTimeout(() => this.pauseHandler(true), this.state.trainDuration);
     }, this.state.trainDelay);
   };
 
@@ -139,22 +191,65 @@ class App extends Component {
     console.log(pose);
     // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
     // [[], []... []]
-    const coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
+    let coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
 
-    pose.keypoints.map((keypoint, i) =>
-      coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]));
+    console.log("pose keypoints" + JSON.stringify(pose.keypoints));
+    // console.log(pose.keypoints[0].position.x);
+    // returns new list! doesn't mutate!
+    // for of loops: [i, x] or x of ...
+    for (const [i, keypoint] of pose.keypoints.entries()) {
+      coordinates[i].push([keypoint.position["x"], keypoint.position["y"]])
+    }
 
     console.log(JSON.stringify(coordinates));
+    // coordinates = pose.keypoints.map((keypoint, i) => {
+    //   console.log(JSON.stringify(keypoint))
+    //   console.log(JSON.stringify(keypoint.position))
+    //   console.log(JSON.stringify(keypoint["position"]))
+    //   coordinates[i].push([keypoint.position["x"], keypoint.position["y"]]);
+    // });
+
+    this.setState({
+      coordinates: this.state.coordinates.concat(coordinates)
+    });
+
+    console.log("addcoordinates " + JSON.stringify(coordinates));
+
+    // todo: make post request
 
     return coordinates;
   }
 
+  sendSample = async () => {
+    try {
+      console.log(`data sent to server!`);
+      // todo: fancy https://github.com/axios/axios#axios-api
+      console.log(JSON.stringify(this.state.train_samples));
+      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: JSON.stringify(this.state.train_samples) });
+      // response structure:
+      // config: {url: "http://localhost:5000/post/data", method: "post", data: "[]", headers: {…}, transformRequest: Array(1), …}
+      // data: {msg: "data transferred!"}
+      // headers: {content-length: "28", content-type: "application/json"}
+      // request: XMLHttpRequest {readyState: 4, timeout: 0, withCredentials: false, upload: XMLHttpRequestUpload, onreadystatechange: ƒ, …}
+      // status: 200
+      // statusText: "OK"
+      // __proto__: Object
+      console.log(res.data.msg);
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
       <li key={i}><img src={capture} height="50" alt={`camera frame #${i}`}/></li>
     );
 
+    const sendButton = this.state.train_samples.length >= this.state.BATCH_SIZE_TRAIN ?
+      <Button id="sendData" variant="contained" color="primary"
+              onClick={this.sendSample}>Send Samples!</Button>
+      : <Button id="sendData" variant="contained" color="primary"
+                onClick={this.sendSample} disabled>Send Samples!</Button>;
 
     return (
       <div>
@@ -195,11 +290,12 @@ class App extends Component {
             <Button id="pause" variant="contained" color="secondary"
                     onClick={this.pauseHandler}>Pause</Button>
             <Button id="train" variant="contained" color="primary"
-                    onClick={this.trainHandler}>Train for 2 secs</Button>
+                    onClick={this.trainHandler}>Collect Training Samples!</Button>
+            {sendButton}
           </div>
-          <audio className="audio-element">
-            <source src="https://assets.coderrocketfuel.com/pomodoro-times-up.mp3"></source>
-          </audio>
+          {/*<audio className="audio-element">*/}
+          {/*  <source src={this.state.AUDIO_SRC}/>*/}
+          {/*</audio>*/}
           <canvas id="canvas" width="500" height="500"/>
           <ul>{captures}</ul>
         </main>

@@ -19,6 +19,7 @@
     "@material-ui/core": "^4.11.0",
     "@tensorflow-models/posenet": "^2.2.1",
     "@tensorflow/tfjs": "^2.7.0",
+    "axios": "^0.21.0",
     "connected-react-router": "4.5.0",
     "hammerjs": "^2.0.8",
     "handtrackjs": "0.0.13",
