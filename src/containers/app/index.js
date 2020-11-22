@@ -34,8 +34,8 @@ class App extends Component {
 
     /** training */
     myTimer: null,
-    trainDelay: 500,
-    trainInterval: 20,
+    trainDelay: 0,
+    trainInterval: 10,
     trainDuration: 1000,
     audioElem: null,
     BATCH_SIZE_TRAIN: 26,
@@ -113,12 +113,12 @@ class App extends Component {
 
     this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
 
-    const pic = this.state.canvas.toDataURL("image/png");
+    // const pic = this.state.canvas.toDataURL("image/png");
     const coordinateSequence = this.addCoordinates();
 
     // react state mutate list with CONCAT: https://www.robinwieruch.de/react-state-array-add-update-remove
     this.setState({
-      captures: this.state.captures.concat(pic),
+      // captures: this.state.captures.concat(pic),
       frames: this.state.frames.concat(coordinateSequence)
     });
   };
