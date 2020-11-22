@@ -131,15 +131,28 @@ class App extends Component {
     const coordinates_copy = JSON.parse(JSON.stringify(this.state.coordinates));
     // alert(JSON.stringify(coordinates_copy))
     if (isTraining) {
+      console.log("istraining" + isTraining);
       // alert(this.state.coordinates.length);
       clearInterval(this.state.myTimer);
+      // sequences map to gestures
+      // data format: (sequence#, frame#, bodypart#)
+      const dimensions = [
+        this.state.train_samples.length,
+        this.state.train_samples.reduce((x, y) => Math.max(x, y.length), 0)
+      ];
+      console.log("dimensions of samples" + dimensions);
       this.setState({
-        train_samples: this.state.train_samples.concat(coordinates_copy),
+        train_samples: [...this.state.train_samples, coordinates_copy.slice(2)],
         coordinates: [],
         captures: [],
-        audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
+        // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
       }, () => {
+        console.log("before trigger" + this.state.train_samples.length)
+        console.log(this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN);
+        console.log(this.state.train_samples.length, this.state.BATCH_SIZE_TRAIN);
+
         if (this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN) {
+          console.log("trigger" + this.state.train_samples.length)
           this.trainHandler();
         }
       });
@@ -158,7 +171,7 @@ class App extends Component {
    * pause timer after training duration reached
    */
   trainHandler = () => {
-    alert(`train handler debug: ${JSON.stringify(this.state.train_samples)}`);
+    // alert(`train handler debug: ${JSON.stringify(this.state.train_samples)}`);
     setTimeout(() => {
       // resets position in audio file to start
       // todo: https://stackoverflow.com/questions/7005472/html-audio-element-how-to-replay
@@ -191,14 +204,17 @@ class App extends Component {
     console.log(pose);
     // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
     // [[], []... []]
-    let coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
+    // let coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
+    let coordinates = [];
 
     console.log("pose keypoints" + JSON.stringify(pose.keypoints));
     // console.log(pose.keypoints[0].position.x);
     // returns new list! doesn't mutate!
     // for of loops: [i, x] or x of ...
     for (const [i, keypoint] of pose.keypoints.entries()) {
-      coordinates[i].push([keypoint.position["x"], keypoint.position["y"]])
+      // watch out for concat vs push! check dimensions carefullllly
+      // coordinates[i].push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
+      coordinates.push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
     }
 
     console.log(JSON.stringify(coordinates));
@@ -288,7 +304,7 @@ class App extends Component {
             <Button id="startCamera" variant="contained" color="primary"
                     onClick={this.startCameraHandler}>Start Streaming</Button>
             <Button id="pause" variant="contained" color="secondary"
-                    onClick={this.pauseHandler}>Pause</Button>
+                    onClick={() => this.pauseHandler(false)}>Pause</Button>
             <Button id="train" variant="contained" color="primary"
                     onClick={this.trainHandler}>Collect Training Samples!</Button>
             {sendButton}
