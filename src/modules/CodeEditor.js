@@ -10,6 +10,7 @@
 export const CHANGE_MODE = 'CHANGE_MODE'
 export const UPDATE_CODE = 'UPDATE_CODE'
 export const TOGGLE_READONLY = 'TOGGLE_READONLY'
+export const UPDATE_OUTPUT = 'UPDATE_OUTPUT'
 
 const defaults = {
 	markdown: '# Heading\n\nSome **bold** and _italic_ text\nBy [Jed Watson](https://github.com/JedWatson)',
@@ -19,10 +20,11 @@ const defaults = {
 const languages = ['markdown', 'javascript', 'xml', 'Python']
 
 const initialState = {
-	code: "Hey! Type your code here!",
+	code: "alert(\"connected\")",
 	readOnly: false,
-	mode: 'markdown',
-	languages: languages
+	mode: "markdown",
+	languages: languages,
+	output: "//output goes here.."
 }
 
 export default (state = initialState, action) => {
@@ -42,6 +44,11 @@ export default (state = initialState, action) => {
 			return {
 				...state,
 				readOnly: !state.readOnly
+			}
+		case UPDATE_OUTPUT:
+			return {
+				...state,
+				output: action.code
 			}
 		default:
 			return state;
@@ -71,6 +78,15 @@ export const toggleReadOnly = () => {
 		dispatch({
 			type: TOGGLE_READONLY
 		});
+	}
+}
+
+export const updateOutput = (code) => {
+	return dispatch => {
+		dispatch({
+			type: UPDATE_OUTPUT,
+			code
+		})
 	}
 }
 

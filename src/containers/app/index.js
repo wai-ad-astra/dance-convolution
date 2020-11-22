@@ -308,11 +308,7 @@ class App extends Component {
 
     return (
       <div>
-        <header>
-          <Link to="/">Home</Link>
-          <Link to="/about-us">About</Link>
-          <Link to="/train">Train</Link>
-        </header>
+        
 
         <main>
           {/*// exact: exact string, vs match prefixed, it alsolooks for first route, so need exact for root if not last
