@@ -35,10 +35,10 @@ class App extends Component {
     /** training */
     myTimer: null,
     trainDelay: 500,
-    trainInterval: 50,
-    trainDuration: 5000,
+    trainInterval: 20,
+    trainDuration: 1000,
     audioElem: null,
-    BATCH_SIZE_TRAIN: 2,
+    BATCH_SIZE_TRAIN: 26,
     gestureName: '',
 
     /** media */
@@ -108,7 +108,7 @@ class App extends Component {
   };
 
   captureHandler = () => {
-    console.log("CaptureHandler");
+    // console.log("CaptureHandler");
     // setInterval: capture a pic at x FPS
 
     this.state.canvas.getContext("2d").drawImage(this.state.video, 0, 0, 500, 500);
@@ -131,7 +131,7 @@ class App extends Component {
     const coordinates_copy = JSON.parse(JSON.stringify(this.state.frames));
     // alert(JSON.stringify(coordinates_copy))
     if (isTraining) {
-      console.log("istraining" + isTraining);
+      // console.log("istraining" + isTraining);
       // alert(this.state.frames.length);
       clearInterval(this.state.myTimer);
       // sequences map to gestures
@@ -140,7 +140,7 @@ class App extends Component {
         this.state.train_samples.length,
         this.state.train_samples.reduce((x, y) => Math.max(x, y.length), 0)
       ];
-      console.log("dimensions of samples" + dimensions);
+      // console.log("dimensions of samples" + dimensions);
       this.setState({
         train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
         // train_samples: [...this.state.train_samples, coordinates_copy.filter(frame => JSON.stringify(frame) !== '{}')],  // cutting off frames of each sequence todo: find out why empty! {}
@@ -148,12 +148,12 @@ class App extends Component {
         captures: [],
         // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
       }, () => {
-        console.log("before trigger" + this.state.train_samples.length)
-        console.log(this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN);
-        console.log(this.state.train_samples.length, this.state.BATCH_SIZE_TRAIN);
+        // console.log("before trigger" + this.state.train_samples.length)
+        // console.log(this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN);
+        // console.log(this.state.train_samples.length, this.state.BATCH_SIZE_TRAIN);
 
         if (this.state.train_samples.length < this.state.BATCH_SIZE_TRAIN) {
-          console.log("trigger" + this.state.train_samples.length)
+          // console.log("trigger" + this.state.train_samples.length)
           this.trainHandler();
         }
       });
@@ -191,9 +191,9 @@ class App extends Component {
   };
 
   async addCoordinates() {
-    console.log("addCoordinates");
-    console.log(this.state.canvas);
-    console.log(this.state.myPosenet);
+    // console.log("addCoordinates");
+    // console.log(this.state.canvas);
+    // console.log(this.state.myPosenet);
     // todo: if fliphorizontal true doesn't work set it to false
     const pose = await this.state.myPosenet.estimateSinglePose(
       // this.state.captures[this.state.captures.length-1],
@@ -202,13 +202,13 @@ class App extends Component {
         flipHorizontal: true
       });
 
-    console.log(pose);
+    // console.log(pose);
     // 17 body parts from posenet: each point {x, y, name, score} / dont' need name bc it's in order
     // [[], []... []]
     // let coordinates = [...Array(N_POSE_COMPONENTS).fill().map(_ => [])];
     let coordinates = [];
 
-    console.log("pose keypoints" + JSON.stringify(pose.keypoints));
+    // console.log("pose keypoints" + JSON.stringify(pose.keypoints));
     // console.log(pose.keypoints[0].position.x);
     // returns new list! doesn't mutate!
     // for of loops: [i, x] or x of ...
@@ -219,9 +219,9 @@ class App extends Component {
       }
       coordinates.push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
     }
-    console.log('length is ' + coordinates.length);
+    // console.log('length is ' + coordinates.length);
 
-    console.log(JSON.stringify(coordinates));
+    // console.log(JSON.stringify(coordinates));
     // coordinates = pose.keypoints.map((keypoint, i) => {
     //   console.log(JSON.stringify(keypoint))
     //   console.log(JSON.stringify(keypoint.position))
@@ -234,7 +234,7 @@ class App extends Component {
       frames: [...this.state.frames, coordinates],
     });
 
-    console.log("addcoordinates " + JSON.stringify(coordinates));
+    // console.log("addcoordinates " + JSON.stringify(coordinates));
 
     // todo: make post request
 
@@ -243,9 +243,9 @@ class App extends Component {
 
   sendSample = async () => {
     try {
-      console.log(`data sent to server!`);
+      // console.log(`data sent to server!`);
       // todo: fancy https://github.com/axios/axios#axios-api
-      console.log(JSON.stringify(this.state.train_samples));
+      // console.log(JSON.stringify(this.state.train_samples));
       // don't! jsonify things like objects like JSON.stringy(this.state.train_samples)
       const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: this.state.train_samples.slice(1), gesture: this.state.gestureName });
       // response structure:
@@ -256,7 +256,7 @@ class App extends Component {
       // status: 200
       // statusText: "OK"
       // __proto__: Object
-      console.log(res.data.msg);
+      // console.log(res.data.msg);
     } catch (e) {
       console.error(e);
     }
