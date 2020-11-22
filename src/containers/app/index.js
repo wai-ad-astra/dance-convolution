@@ -290,12 +290,21 @@ class App extends Component {
       <li key={i}><img src={capture} height="50" alt={`camera frame #${i}`}/></li>
     );
 
-    const sendButton = this.state.train_samples.length >= this.state.BATCH_SIZE_TRAIN ?
+    const sendButton = this.state.train_samples.length >= this.state.BATCH_SIZE_TRAIN && this.state.gestureName?
       <Button id="sendData" variant="contained" color="palette.success.dark"
               onClick={this.sendSample}>Send Samples!</Button>
       : <Button id="sendData" variant="contained" color="primary"
                 onClick={this.sendSample} disabled>Send Samples!</Button>;
 
+    const gestureNameForm = (
+      <form style={{display: "inline-block"}}>
+        <form className="gesture form" noValidate autoComplete="off">
+          <TextField id="outlined-basic" label="name your gesture!" variant="outlined" required
+                     value={this.state.gestureName} onChange={this.gestureNameHandler}/>
+        </form>
+        {/*<input type="submit" value="Submit"/>*/}
+      </form>
+    )
 
     return (
       <div>
@@ -315,6 +324,10 @@ class App extends Component {
             </Route>
             <Route path="/train">
               <Train/>
+              <Button id="train" variant="contained" color="primary"
+                      onClick={this.trainHandler}>Collect Training Samples!</Button>
+              {sendButton}
+              {gestureNameForm}
             </Route>
             <Route path="/">
               <Home/>
@@ -336,17 +349,8 @@ class App extends Component {
                     onClick={this.startCameraHandler}>Start Streaming</Button>
             <Button id="pause" variant="contained" color="secondary"
                     onClick={() => this.pauseHandler(false)}>Pause</Button>
-            <Button id="train" variant="contained" color="primary"
-                    onClick={this.trainHandler}>Collect Training Samples!</Button>
-            {sendButton}
           </div>
-          <form>
-            <form className="gesture form" noValidate autoComplete="off">
-              <TextField id="outlined-basic" label="name your gesture!" variant="outlined"
-                         value={this.state.gestureName} onChange={this.gestureNameHandler}/>
-            </form>
-            {/*<input type="submit" value="Submit"/>*/}
-          </form>
+
           {/*<audio className="audio-element">*/}
           {/*  <source src={this.state.AUDIO_SRC}/>*/}
           {/*</audio>*/}
