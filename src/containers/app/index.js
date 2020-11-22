@@ -8,7 +8,8 @@ import axios from "axios";
 
 /** Material UI */
 // import Button from "@material-ui/core/Button";
-import { Button, Input } from '@material-ui/core';
+import { Button, Input, TextField } from "@material-ui/core";
+import { makeStyles } from "@material-ui/core/styles";
 
 /** Components  */
 import Home from "../home";
@@ -22,6 +23,18 @@ import * as posenet from "@tensorflow-models/posenet";
 import estimateSinglePose from "@tensorflow-models/posenet";
 
 const N_POSE_COMPONENTS = 17;
+
+const useStyles = makeStyles({
+  streamButtonStyle: {
+    position: "absolute",
+    width: "89px",
+    height: "112px",
+    left: "1325px",
+    top: "76px",
+    background: "#28E730",
+    transform: "rotate(88.61deg)"
+  }
+});
 
 class App extends Component {
   state = {
@@ -39,7 +52,7 @@ class App extends Component {
     trainDuration: 1000,
     audioElem: null,
     BATCH_SIZE_TRAIN: 26,
-    gestureName: '',
+    gestureName: "",
 
     /** media */
     video: null,
@@ -51,7 +64,10 @@ class App extends Component {
     audio: null,
 
     /** axios */
-    BASE_URL: null
+    BASE_URL: null,
+
+    // /** material ui */
+    // classes: useStyles()
   };
 
   // (for functional: async inside of hook)
@@ -145,7 +161,7 @@ class App extends Component {
         train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
         // train_samples: [...this.state.train_samples, coordinates_copy.filter(frame => JSON.stringify(frame) !== '{}')],  // cutting off frames of each sequence todo: find out why empty! {}
         frames: [],
-        captures: [],
+        captures: []
         // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
       }, () => {
         // console.log("before trigger" + this.state.train_samples.length)
@@ -214,10 +230,10 @@ class App extends Component {
     // for of loops: [i, x] or x of ...
     for (const [i, keypoint] of pose.keypoints.entries()) {
       // watch out for concat vs push! check dimensions carefullllly
-      if (i > 10){  // only upper body, excluding waist down
-        break
+      if (i > 10) {  // only upper body, excluding waist down
+        break;
       }
-      coordinates.push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
+      coordinates.push([keypoint.position["x"], keypoint.position["y"]]);  // [1, 2]
     }
     // console.log('length is ' + coordinates.length);
 
@@ -231,7 +247,7 @@ class App extends Component {
 
     // sherlock homes: I think this should be push
     this.setState({
-      frames: [...this.state.frames, coordinates],
+      frames: [...this.state.frames, coordinates]
     });
 
     // console.log("addcoordinates " + JSON.stringify(coordinates));
@@ -247,7 +263,10 @@ class App extends Component {
       // todo: fancy https://github.com/axios/axios#axios-api
       // console.log(JSON.stringify(this.state.train_samples));
       // don't! jsonify things like objects like JSON.stringy(this.state.train_samples)
-      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: this.state.train_samples.slice(1), gesture: this.state.gestureName });
+      const res = await axios.post(`${this.state.BASE_URL}/post/data`, {
+        samples: this.state.train_samples.slice(1),
+        gesture: this.state.gestureName
+      });
       // response structure:
       // config: {url: "http://localhost:5000/post/data", method: "post", data: "[]", headers: {…}, transformRequest: Array(1), …}
       // data: {msg: "data transferred!"}
@@ -263,8 +282,8 @@ class App extends Component {
   };
 
   gestureNameHandler = event => {
-    this.setState({gestureName: event.target.value});
-  }
+    this.setState({ gestureName: event.target.value });
+  };
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
@@ -272,10 +291,11 @@ class App extends Component {
     );
 
     const sendButton = this.state.train_samples.length >= this.state.BATCH_SIZE_TRAIN ?
-      <Button id="sendData" variant="contained" color="primary"
+      <Button id="sendData" variant="contained" color="palette.success.dark"
               onClick={this.sendSample}>Send Samples!</Button>
       : <Button id="sendData" variant="contained" color="primary"
                 onClick={this.sendSample} disabled>Send Samples!</Button>;
+
 
     return (
       <div>
@@ -321,11 +341,11 @@ class App extends Component {
             {sendButton}
           </div>
           <form>
-            <label>
-              Gesture Name:
-              <input type="text" name="name" value={this.state.gestureName} onChange={this.gestureNameHandler} />
-            </label>
-            <input type="submit" value="Submit" />
+            <form className="gesture form" noValidate autoComplete="off">
+              <TextField id="outlined-basic" label="name your gesture!" variant="outlined"
+                         value={this.state.gestureName} onChange={this.gestureNameHandler}/>
+            </form>
+            {/*<input type="submit" value="Submit"/>*/}
           </form>
           {/*<audio className="audio-element">*/}
           {/*  <source src={this.state.AUDIO_SRC}/>*/}
