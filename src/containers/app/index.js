@@ -303,7 +303,7 @@ class App extends Component {
           {/*<Route exact path="/" component={Home}/>*/}
           {/*<Route exact path="/about-us" component={About}/>*/}
           {/*<Route exact path="/train" component={Train}/>*/}
-          <p>helloooooo</p>
+          {/* <p>helloooooo</p> */}
           {/*<div id="video" style={{height: 500, width: 500, border: '5px dotted'}}></div>*/}
           <div>
             {/*want similar ratio to posenet, bc image will be compressed!*/}
