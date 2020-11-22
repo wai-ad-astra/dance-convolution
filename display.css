@@ -1,0 +1,181 @@
+
+
+.instructionsButton{
+
+	/* Go to instructions*/ 
+
+
+position: absolute;
+width: 123px;
+height: 115px;
+left: 116.79px;
+top: 325.8px;
+
+background: #28E730;
+transform: rotate(-10.2deg);
+
+}
+
+.title{
+
+/* Dance Dance Convolution! */
+
+
+position: absolute;
+width: 616px;
+height: 199px;
+left: 134px;
+top: 59px;
+
+font-family: Roboto Condensed;
+font-style: normal;
+font-weight: bold;
+font-size: 100px;
+line-height: 117px;
+
+color: #000000;
+
+}
+
+
+.cameraStyle{
+
+/* Camera positioning */
+
+
+position: absolute;
+width: 458px;
+height: 359px;
+left: 134px;
+top: 463px;
+
+
+
+}
+
+
+.playbackButtons {
+
+/* Camera functions */
+
+
+position: absolute;
+width: 113px;
+height: 67px;
+left: 131px;
+top: 877px;
+
+}
+
+
+.textEditorStyle{
+
+/*position of text editor*/ 
+
+position: absolute;
+width: 564px;
+height: 745px;
+left: 779px;
+top: 199px;
+
+}
+
+
+.runProgramStyle{
+
+/*heading 2*/
+
+font-family: Rationale;
+font-size: 75px;
+font-style: normal;
+font-weight: 400;
+line-height: 86px;
+letter-spacing: 0em;
+text-align: left;
+
+}
+
+
+
+.runProgramButton{
+
+
+position: absolute;
+width: 88.86px;
+height: 111.99px;
+left: 1324.96px;
+top: 76px;
+
+background: #28E730;
+transform: rotate(88.61deg);
+
+}
+
+
+.instructionStyle{
+
+/*Heading 2*/ 
+
+font-family: Roboto Condensed;
+font-size: 60px;
+font-style: normal;
+font-weight: 700;
+line-height: 70px;
+letter-spacing: 0em;
+text-align: left;
+
+}
+
+
+.secondaryPageHeading{
+
+/*title on page 2*/ 
+
+font-family: Roboto Condensed;
+font-size: 100px;
+font-style: normal;
+font-weight: 700;
+line-height: 117px;
+letter-spacing: 0em;
+text-align: left;
+
+}
+
+
+.linkingButtons{
+
+position: absolute;
+width: 487px;
+height: 97px;
+left: 810px;
+top: 100px;
+
+background: #E6A5F0;
+
+}
+
+
+.linkingButtonsSyle{
+
+font-family: Roboto Condensed;
+font-size: 45px;
+font-style: normal;
+font-weight: 400;
+line-height: 53px;
+letter-spacing: 0em;
+text-align: left;
+
+}
+
+.outputSytle{
+
+	/* Positioning of output section */
+
+
+position: absolute;
+width: 1094px;
+height: 660px;
+left: 203px;
+top: 248px;
+
+}
