@@ -142,7 +142,7 @@ class App extends Component {
       ];
       console.log("dimensions of samples" + dimensions);
       this.setState({
-        train_samples: [...this.state.train_samples, coordinates_copy.slice(2)],
+        train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
         coordinates: [],
         captures: [],
         // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
@@ -213,9 +213,12 @@ class App extends Component {
     // for of loops: [i, x] or x of ...
     for (const [i, keypoint] of pose.keypoints.entries()) {
       // watch out for concat vs push! check dimensions carefullllly
-      // coordinates[i].push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
+      if (i > 10){  // only upper body, excluding waist down
+        break
+      }
       coordinates.push([keypoint.position["x"], keypoint.position["y"]])  // [1, 2]
     }
+    console.log('length is ' + coordinates.length);
 
     console.log(JSON.stringify(coordinates));
     // coordinates = pose.keypoints.map((keypoint, i) => {
@@ -241,7 +244,8 @@ class App extends Component {
       console.log(`data sent to server!`);
       // todo: fancy https://github.com/axios/axios#axios-api
       console.log(JSON.stringify(this.state.train_samples));
-      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: JSON.stringify(this.state.train_samples) });
+      // don't! jsonify things like objects like JSON.stringy(this.state.train_samples)
+      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: this.state.train_samples });
       // response structure:
       // config: {url: "http://localhost:5000/post/data", method: "post", data: "[]", headers: {…}, transformRequest: Array(1), …}
       // data: {msg: "data transferred!"}
