@@ -331,6 +331,14 @@ class App extends Component {
             </Route>
             <Route path="/">
               <Home/>
+              <div>
+                {/*// note: JSX comments are like this!*/}
+                {/*<button id="snap" onClick={this.captureHandler}>Snap Photo</button>*/}
+                <Button id="startCamera" variant="contained" color="primary"
+                        onClick={this.startCameraHandler}>Start Streaming</Button>
+                <Button id="pause" variant="contained" color="secondary"
+                        onClick={() => this.pauseHandler(false)}>Pause</Button>
+              </div>
             </Route>
           </Switch>
           {/*<Route exact path="/" component={Home}/>*/}
@@ -342,14 +350,7 @@ class App extends Component {
             {/*want similar ratio to posenet, bc image will be compressed!*/}
             <video id="video" width="771" height="600" autoPlay/>
           </div>
-          <div>
-            {/*// note: JSX comments are like this!*/}
-            {/*<button id="snap" onClick={this.captureHandler}>Snap Photo</button>*/}
-            <Button id="startCamera" variant="contained" color="primary"
-                    onClick={this.startCameraHandler}>Start Streaming</Button>
-            <Button id="pause" variant="contained" color="secondary"
-                    onClick={() => this.pauseHandler(false)}>Pause</Button>
-          </div>
+
 
           {/*<audio className="audio-element">*/}
           {/*  <source src={this.state.AUDIO_SRC}/>*/}
