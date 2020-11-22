@@ -131,7 +131,7 @@ class App extends Component {
     const coordinates_copy = JSON.parse(JSON.stringify(this.state.frames));
     // alert(JSON.stringify(coordinates_copy))
     if (isTraining) {
-      // console.log("istraining" + isTraining);
+      console.log("istraining" + isTraining);
       // alert(this.state.frames.length);
       clearInterval(this.state.myTimer);
       // sequences map to gestures
@@ -140,7 +140,7 @@ class App extends Component {
         this.state.train_samples.length,
         this.state.train_samples.reduce((x, y) => Math.max(x, y.length), 0)
       ];
-      // console.log("dimensions of samples" + dimensions);
+      console.log("dimensions of samples" + dimensions);
       this.setState({
         train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
         // train_samples: [...this.state.train_samples, coordinates_copy.filter(frame => JSON.stringify(frame) !== '{}')],  // cutting off frames of each sequence todo: find out why empty! {}
