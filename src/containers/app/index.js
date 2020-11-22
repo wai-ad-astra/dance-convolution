@@ -7,7 +7,8 @@ import { Route, Link, Switch } from "react-router-dom";
 import axios from "axios";
 
 /** Material UI */
-import Button from "@material-ui/core/Button";
+// import Button from "@material-ui/core/Button";
+import { Button, Input } from '@material-ui/core';
 
 /** Components  */
 import Home from "../home";
@@ -37,7 +38,8 @@ class App extends Component {
     trainInterval: 50,
     trainDuration: 5000,
     audioElem: null,
-    BATCH_SIZE_TRAIN: 5,
+    BATCH_SIZE_TRAIN: 2,
+    gestureName: '',
 
     /** media */
     video: null,
@@ -141,6 +143,7 @@ class App extends Component {
       console.log("dimensions of samples" + dimensions);
       this.setState({
         train_samples: [...this.state.train_samples, coordinates_copy.slice(2, -1)],  // cutting off frames of each sequence todo: find out why empty! {}
+        // train_samples: [...this.state.train_samples, coordinates_copy.filter(frame => JSON.stringify(frame) !== '{}')],  // cutting off frames of each sequence todo: find out why empty! {}
         frames: [],
         captures: [],
         // audio: new Audio(this.state.AUDIO_SRC) // todo: consult mentor, really inefficient, but audio only plays once! :(
@@ -244,7 +247,7 @@ class App extends Component {
       // todo: fancy https://github.com/axios/axios#axios-api
       console.log(JSON.stringify(this.state.train_samples));
       // don't! jsonify things like objects like JSON.stringy(this.state.train_samples)
-      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: this.state.train_samples });
+      const res = await axios.post(`${this.state.BASE_URL}/post/data`, { samples: this.state.train_samples.slice(1), gesture: this.state.gestureName });
       // response structure:
       // config: {url: "http://localhost:5000/post/data", method: "post", data: "[]", headers: {…}, transformRequest: Array(1), …}
       // data: {msg: "data transferred!"}
@@ -258,6 +261,10 @@ class App extends Component {
       console.error(e);
     }
   };
+
+  gestureNameHandler = event => {
+    this.setState({gestureName: event.target.value});
+  }
 
   render() {
     const captures = this.state.captures.map((capture, i) =>
@@ -299,7 +306,8 @@ class App extends Component {
           <p>helloooooo</p>
           {/*<div id="video" style={{height: 500, width: 500, border: '5px dotted'}}></div>*/}
           <div>
-            <video id="video" width="500" height="500" autoPlay/>
+            {/*want similar ratio to posenet, bc image will be compressed!*/}
+            <video id="video" width="771" height="600" autoPlay/>
           </div>
           <div>
             {/*// note: JSX comments are like this!*/}
@@ -312,6 +320,13 @@ class App extends Component {
                     onClick={this.trainHandler}>Collect Training Samples!</Button>
             {sendButton}
           </div>
+          <form>
+            <label>
+              Gesture Name:
+              <input type="text" name="name" value={this.state.gestureName} onChange={this.gestureNameHandler} />
+            </label>
+            <input type="submit" value="Submit" />
+          </form>
           {/*<audio className="audio-element">*/}
           {/*  <source src={this.state.AUDIO_SRC}/>*/}
           {/*</audio>*/}
